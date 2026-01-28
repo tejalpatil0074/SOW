@@ -457,7 +457,6 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
         - Industry: {final_industry}
         - AI services: {', '.join(ai_svcs)}
         - Data types: {', '.join(data_types)}
-        - Integrations: {', '.join(sel_ints)}
         - Engagement type: {engagement_type}
 
         # 5 SCOPE OF WORK – FUNCTIONAL CAPABILITIES
