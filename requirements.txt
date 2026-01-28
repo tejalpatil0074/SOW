@@ -1,0 +1,6 @@
+streamlit
+requests
+pandas
+python-docx
+tabulate
+datetime
