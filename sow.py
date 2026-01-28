@@ -461,7 +461,7 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
 
         # 5 SCOPE OF WORK – FUNCTIONAL CAPABILITIES
 
-        Generate only 3 lines for each heading, enterprise-grade content strictly under the following headings.
+        Generate detailed, enterprise-grade content strictly under the following headings.
         Do not add or rename headings.
 
         ## 5.1 Infrastructure Setup
