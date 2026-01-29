@@ -472,7 +472,7 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
 
         ## C. Backend Components
         Describe backend services, LLM integration, vector databases, APIs, event handling, and system orchestration.
-
+ 
         ## D. UI / Integration Layer
         Describe UI, dashboards, APIs, and system integrations if applicable.
 
