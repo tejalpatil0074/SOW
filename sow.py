@@ -171,7 +171,7 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
                 cols = [c.strip() for c in table_lines[0].split('|') if c.strip()]
                 t = doc.add_table(rows=1, cols=len(cols)); t.style = "Table Grid"
                 for idx, h_text in enumerate(cols):
-                    t.rows[0].cells[idx].paragraph[0].add_run(h_text).bold = True
+                    t.rows[0].cells[idx].paragraphs[0].add_run(h_text).bold = True
                 for row_line in table_lines[2:]:
                     cells_data = [c.strip() for c in row_line.split('|') if c.strip()]
                     r = t.add_row().cells
