@@ -414,16 +414,21 @@ if st.button("Generate Full SOW", type="primary", use_container_width=True):
 
     # payload must be defined here as well
     payload = {
-        "prompt": "Hello Gemini!",
-        "temperature": 0.7,
-        "maxOutputTokens": 256
+        "instances": [
+            {"content": "Hello Gemini!"}
+        ],
+        "parameters": {
+            "temperature": 0.7,
+            "maxOutputTokens": 256
+        }
     }
 
+
     # Now this will work reliably
-    res, err = call_gemini_with_retry(payload, api_key_input=api_key)
+    res, err = call_gemini_with_retry(payload, api_key_input=st.session_state.api_key)
     if res:
         st.success("API call successful!")
-        st.write(res.json())
+        st.json(res.json())
     else:
         st.error(f"API error: {err}")
 
