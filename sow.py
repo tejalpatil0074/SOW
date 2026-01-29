@@ -432,7 +432,7 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
         Deliverables: {', '.join(delivs)}.
         """
         payload = {"contents": [{"parts": [{"text": prompt}]}], "systemInstruction": {"parts": [{"text": "AWS Solutions Architect. Adhere to sections 2-5 numbering. BOLD main headings. Use letters A, B, C for sub-headings in Section 3."}]}}
-        res, err = call_gemini_with_retry(payload, api_key_input=api_key)
+        res, err = call_gemini_with_retry(payload, api_key_input=api_key) 
         if res:
             st.session_state.generated_sow = res.json()['candidates'][0]['content']['parts'][0]['text']
             st.rerun()
