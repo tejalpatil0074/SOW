@@ -222,9 +222,13 @@ def create_docx_logic(text_content, branding, sow_name):
                         row[1].text = cost_data["prod_cost"]
 
                         doc.add_paragraph()  # spacing
-                for run in p_cap.runs: 
-                    run.font.name = 'Times New Roman'
-                    run.font.color.rgb = RGBColor(0, 0, 0)
+                p_cap = None
+
+                if p_cap:
+                    for run in p_cap.runs: 
+                        run.bold = True   
+                        run.font.name = 'Times New Roman'
+                        run.font.color.rgb = RGBColor(0, 0, 0)
 
                     
             i += 1; continue
