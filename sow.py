@@ -497,6 +497,8 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
 
 
         # 4 SOLUTION ARCHITECTURE
+        
+        # 5 RESOURCES AND COST ESTIMATES
 
         # 7 ARCHITECTURE & AWS SERVICES
         ## 7.1 COMPUTE & ORCHESTRATION
