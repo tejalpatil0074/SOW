@@ -159,8 +159,8 @@ def create_docx_logic(text_content, branding, sow_name):
     while i < len(lines):
         line = lines[i].strip()
         # STOP processing after section 5
-    if re.match(r'^#\s*[6-9]\b|^#\s*10\b', line):
-    break
+        if re.match(r'^#\s*[6-9]\b|^#\s*10\b', line):
+            break
         if not line: i += 1; continue
         
         # Identification Logic
