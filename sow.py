@@ -143,24 +143,38 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
         # Remove stray markdown emphasis markers
         clean_line = re.sub(r'^\*\s*', '', clean_line)
 
-        upper = clean_line.upper()
         current_id = None
-        for h_id, h_title in headers_map.items():
-            if re.match(rf"^{h_id}[\.\s]+.*{re.escape(h_title.split()[0].upper())}", upper):
-                current_id = h_id; break
+        for h_id in headers_map:
+            if re.match(rf"^{h_id}\s+", clean_line):
+                current_id = h_id
+                break
+
 
         if current_id:
-            if current_id != "2": doc.add_page_break()
+            if current_id != "2":
+                doc.add_page_break()
+
             h = doc.add_heading(clean_line.upper(), level=1)
-            for run in h.runs: run.bold = True; run.font.color.rgb = RGBColor(0, 0, 0)
-            
+            for run in h.runs:
+                run.bold = True
+                run.font.color.rgb = RGBColor(0, 0, 0)
+
+            # ✅ INSERT ARCHITECTURE IMAGE IMMEDIATELY
             if current_id == "4":
-                diag = SOW_DIAGRAM_MAP.get(sow_name)
+                diag = SOW_DIAGRAM_MAP.get(sow_name.strip())
                 if diag and os.path.exists(diag):
-                    doc.add_picture(diag, width=Inches(5.5))
-                    p_cap = doc.add_paragraph(f"{sow_name} – Architecture Diagram")
-                    p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            i += 1; continue
+                    pic_p = doc.add_paragraph()
+                    pic_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    pic_p.add_run().add_picture(diag, width=Inches(5.8))
+
+                    cap = doc.add_paragraph(f"{sow_name} – Architecture Diagram")
+                    cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                else:
+                    doc.add_paragraph("Architecture diagram unavailable.")
+
+            i += 1
+            continue
+
             
         if line.startswith('|') and i + 1 < len(lines) and lines[i+1].strip().startswith('|'):
             # Skip Markdown timeline tables as we generate them manually
