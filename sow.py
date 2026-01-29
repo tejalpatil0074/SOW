@@ -528,7 +528,7 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
                 
         # Pass the api_key from the sidebar input
         if api_key:
-            res, err = call_gemini_with_retry(payload, api_key_input=api_key)
+            res, err = call_gemini_with_retry(payload, api_key_input=apiKey)
         else:
             st.warning("Please enter API Key first")
 
