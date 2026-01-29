@@ -145,7 +145,7 @@ def create_docx_logic(text_content, branding, sow_name):
         }
 
     lines = text_content.split('\n')
-    rendered_sections = {str(i): False for i in range(1, 11)}
+    rendered_sections = {}
     i, in_toc, content_started = 0, False, False
 
     while i < len(lines):
@@ -172,6 +172,7 @@ def create_docx_logic(text_content, branding, sow_name):
                 in_toc = False
                 
             if not rendered_sections[current_id]:
+                rendered_sections[current_id] = False
                 h = doc.add_heading(clean_line.upper(), level=1)
                 for run in h.runs: 
                     run.font.name = 'Times New Roman'
@@ -455,7 +456,7 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
         - Engagement type: {engagement_type}
 
 
-        # 3 SCOPE OF WORK – FUNCTIONAL CAPABILITIES
+        # 3 SCOPE OF WORK – TECHNICAL PROJECT PLAN
 
         Generate detailed, enterprise-grade content strictly under the following headings.
         Do not add or rename headings.
@@ -529,9 +530,9 @@ if st.session_state.generated_sow:
         p_content = st.session_state.generated_sow.replace("Estimate", f'<a href="{calc_url_p}" target="_blank">Estimate</a>')
         
         # Injection logic for the diagram
-        if "# 6 SOLUTION ARCHITECTURE" in p_content:
-            parts = p_content.split("# 6 SOLUTION ARCHITECTURE")
-            st.markdown(parts[0] + "# 6 SOLUTION ARCHITECTURE", unsafe_allow_html=True)
+        if "# 4 SOLUTION ARCHITECTURE" in p_content:
+            parts = p_content.split("# 4 SOLUTION ARCHITECTURE")
+            st.markdown(parts[0] + "# 4 SOLUTION ARCHITECTURE", unsafe_allow_html=True)
             diag_out = SOW_DIAGRAM_MAP.get(sow_key)
             if diag_out and os.path.exists(diag_out):
                 st.image(diag_out, caption=f"{sow_key} Architecture")
