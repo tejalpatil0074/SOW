@@ -112,7 +112,7 @@ def create_docx_logic(text_content, branding, sow_name):
     # Global document style: Times New Roman, Black
     style = doc.styles['Normal']
     style.font.name = 'Times New Roman'
-    style.font.size = Pt(12)
+    style.font.size = Pt(11)
     
     # Page 1 Cover
     p = doc.add_paragraph()
@@ -145,7 +145,7 @@ def create_docx_logic(text_content, branding, sow_name):
         }
 
     lines = text_content.split('\n')
-    rendered_sections = {}
+    rendered_sections = {str(i): False for i in range(1, 11)}
     i, in_toc, content_started = 0, False, False
 
     while i < len(lines):
@@ -171,17 +171,14 @@ def create_docx_logic(text_content, branding, sow_name):
                 doc.add_page_break()
                 in_toc = False
                 
-            if current_id not in rendered_sections:
-                rendered_sections[current_id] = False
-
             if not rendered_sections[current_id]:
                 h = doc.add_heading(clean_line.upper(), level=1)
-                for run in h.runs:
+                for run in h.runs: 
                     run.font.name = 'Times New Roman'
                     run.font.color.rgb = RGBColor(0, 0, 0)
-
+                
                 rendered_sections[current_id] = True
-
+                if current_id == "1": in_toc = True
                 
                 if current_id == "4":
                     diag = SOW_DIAGRAM_MAP.get(sow_name)
@@ -256,7 +253,8 @@ def create_docx_logic(text_content, branding, sow_name):
 
 def call_gemini_with_retry(payload, api_key_input=""):
     # Default to environment injection if input is empty
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key={api_key_input}"
+    apiKey = api_key_input if api_key_input else ""
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key={apiKey}"
     
     delays = [1, 2, 4, 8, 16]
     for attempt in range(len(delays)):
@@ -299,14 +297,10 @@ def reset_all():
 
 # --- 1. PROJECT INTAKE ---
 with st.sidebar:
-    if "api_key" not in st.session_state:
-        st.session_state.api_key = ""
-    st.session_state.api_key = st.text_input(
-        "Gemini API Key",
-        type="password",
-        value=st.session_state.api_key,
-        help="Enter your Gemini API key"
-    )
+    st.image("https://img.icons8.com/fluency/96/artificial-intelligence.png", width=60)
+    st.title("Architect Pro")
+    with st.expander("🔑 API Key", expanded=True):
+        api_key = st.text_input("Gemini API Key", type="password", help="Enter your Gemini API key to resolve Permission Denied errors.")
     st.divider()
     st.header("📋 1. Project Intake")
     sow_opts = ["1. L1 Support Bot POC SOW", "2. Beauty Advisor POC SOW", "3. Ready Search POC Scope of Work Document", "4. AI based Image Enhancement POC SOW", "5. AI based Image Inspection POC SOW", "6. Gen AI for SOP POC SOW", "7. Project Scope Document", "8. Gen AI Speech To Speech", "9. PoC Scope Document"]
@@ -329,12 +323,12 @@ st.divider()
 
 # --- 2. PROJECT OVERVIEW ---
 st.header("2. Project Overview Section")
-st.subheader("2.1 Business Objective")
+st.subheader("🎯 2.1 Business Objective")
 biz_objective = st.text_area("What business problem is the customer trying to solve?", placeholder="Example: Development of a Gen AI based Bot to demonstrate feasibility...", height=100)
 st.subheader("Key Outcomes Expected")
 sel_outcomes = st.multiselect("Select outcomes:", ["Reduce manual effort", "Improve accuracy / quality", "Faster turnaround time", "Cost reduction", "Revenue uplift", "Compliance improvement", "Better customer experience", "Scalability validation", "Other (specify)"], default=["Improve accuracy / quality", "Cost reduction"])
 
-st.subheader("2.2 Stakeholders Information")
+st.subheader("👥 2.2 Stakeholders Information")
 st.markdown('<div class="stakeholder-header">Partner Executive Sponsor</div>', unsafe_allow_html=True)
 st.session_state.stakeholders["Partner"] = st.data_editor(st.session_state.stakeholders["Partner"], num_rows="dynamic", use_container_width=True, key="ed_p")
 st.markdown('<div class="stakeholder-header">Customer Executive Sponsor</div>', unsafe_allow_html=True)
@@ -345,13 +339,13 @@ st.markdown('<div class="stakeholder-header">Project Escalation Contacts</div>',
 st.session_state.stakeholders["Escalation"] = st.data_editor(st.session_state.stakeholders["Escalation"], num_rows="dynamic", use_container_width=True, key="ed_e")
 st.divider()
 
-# --- 2.3. ASSUMPTIONS & DEPENDENCIES ---
-st.header("2.3 Assumptions & Dependencies")
-st.subheader("Customer Dependencies")
+# --- 3. ASSUMPTIONS & DEPENDENCIES ---
+st.header("📋 2.3. Assumptions & Dependencies")
+st.subheader("🔗 Customer Dependencies")
 dep_opts = ["Sample data availability", "Historical data availability", "Design / business guidelines finalized", "API access provided", "User access to AWS account", "SME availability for validation", "Network / VPC access", "Security approvals"]
 sel_deps = [opt for opt in dep_opts if st.checkbox(opt, key=f"dep_{opt}")]
 
-st.subheader("Data Characteristics")
+st.subheader("📊 Data Characteristics")
 data_types = st.multiselect("Data involved:", ["Images", "Text", "PDFs / Documents", "Audio", "Video", "Structured tables", "APIs / Streams"])
 data_meta = {}
 for dt in data_types:
@@ -359,23 +353,23 @@ for dt in data_types:
         c1, c2, c3 = st.columns(3)
         data_meta[dt] = {"Size": c1.text_input(f"{dt} Avg Size", "2 MB"), "Format": c2.text_input(f"{dt} Formats", "JPEG, PNG" if dt=="Images" else "PDF"), "Vol": c3.text_input(f"{dt} Volume", "100/day")}
 
-st.subheader("Key Assumptions")
+st.subheader("💡 Key Assumptions")
 sel_ass = [opt for opt in ["PoC only, not production-grade", "Limited data volume", "Rule-based logic acceptable initially", "Manual review for edge cases", "No real-time SLA commitments"] if st.checkbox(opt, key=f"ass_{opt}")]
 custom_ass = st.text_input("Other Assumptions:", key="custom_ass_in")
 st.divider()
 
-# --- 2.4. POC SUCCESS CRITERIA ---
-st.header("2.4. PoC Success Criteria")
+# --- 4. POC SUCCESS CRITERIA ---
+st.header("🎯 2.4. PoC Success Criteria")
 sel_dims = st.multiselect("Dimensions:", ["Accuracy", "Latency", "Usability", "Explainability", "Coverage", "Cost efficiency", "Integration readiness"], default=["Accuracy", "Cost efficiency"])
 val_req = st.radio("Validation Strategy:", ["Yes – customer validation required", "No – internal validation sufficient"])
 st.divider()
 
-# --- 3. SCOPE OF WORK ---
+# --- 5. SCOPE OF WORK ---
 st.header("🛠️ 3. Scope of Work")
 st.divider()
 
-# --- 4. ARCHITECTURE & AWS SERVICES ---
-st.header("4. Architecture & AWS Services")
+# --- 6. ARCHITECTURE & AWS SERVICES ---
+st.header("🏢 4. Architecture & AWS Services")
 compute_choices = st.multiselect("Compute Options:", ["AWS Lambda", "Step Functions", "Amazon ECS / EKS(future)", "Hybrid"], default=["AWS Lambda", "Step Functions"])
 ai_svcs = st.multiselect("AI Services:", ["Amazon Bedrock", "Amazon SageMaker", "Rekognition", "Textract", "Comprehend", "Transcribe", "Translate"], default=["Amazon Bedrock"])
 st_svcs = st.multiselect("Storage:", ["Amazon S3", "DynamoDB", "OpenSearch", "RDS", "Vector DB (OpenSearch / Aurora PG)"], default=["Amazon S3"])
@@ -383,60 +377,30 @@ ui_layer = st.selectbox("UI Layer:", ["Streamlit on S3", "CloudFront + Static UI
 st.divider()
 
 # --- 7. NON-FUNCTIONAL REQUIREMENTS ---
-st.header("Non-Functional Requirements")
+st.header("⚙️ 7. Non-Functional Requirements")
 perf = st.selectbox("Performance Profile:", ["Batch", "Near real-time", "Real-time"], index=1)
 sec = st.multiselect("Security Controls:", ["IAM-based access", "Encryption at rest", "Encryption in transit", "VPC deployment", "Audit logging", "Compliance alignment (RBI, SOC2, etc.)"], default=["IAM-based access", "VPC deployment"])
 st.divider()
 
 # --- 8. TIMELINE & PHASING ---
-st.header("Timeline & Phasing")
+st.header("📅 8. Timeline & Phasing")
 poc_dur = st.selectbox("PoC Duration:", ["2 weeks", "4 weeks", "6 weeks", "Custom"])
 st.session_state.timeline_phases = st.data_editor(st.session_state.timeline_phases, num_rows="dynamic", use_container_width=True, key="ed_t")
 st.divider()
 
 # --- 9. COSTING ---
-st.header("Costing Inputs & Ownership")
+st.header("💰 9. Costing Inputs & Ownership")
 st.info(f"Calculator Link: {CALCULATOR_LINKS.get(sow_key, 'https://calculator.aws')}")
 ownership = st.selectbox("Cost Ownership:", ["Funded by AWS", "Funded by Partner", "Funded by Customer", "Shared"], index=2)
 st.divider()
 
 # --- 10. FINAL OUTPUTS ---
-st.header("Final Outputs")
+st.header("🏁 10. Final Outputs")
 delivs = st.multiselect("Deliverables:", ["PoC architecture", "Working demo", "SOW document", "Cost estimate", "Next-phase proposal"], default=["Working demo", "SOW document"])
 nxt = st.multiselect("Next Steps:", ["Production proposal", "Scaling roadmap", "Security review", "Performance optimization", "Model fine-tuning"], default=["Production proposal", "Scaling roadmap"])
 
 # --- GENERATION ---
-if st.button("Generate Full SOW", type="primary", use_container_width=True):
-    api_key = st.session_state.api_key
-    if not api_key:
-        st.warning("Please enter your Gemini API key first!")
-        st.stop()  # prevents code below from running without a key
-
-    # payload must be defined here as well
-    # Updated payload with correct Gemini schema
-    payload = {
-        "contents": [
-            {
-                "parts": [
-                    {"text": prompt}  # Use the dynamic prompt you defined below
-                ]
-            }
-        ],
-        "generationConfig": {
-            "temperature": 0.7,
-            "maxOutputTokens": 2000
-        }
-    }
-
-    # Now this will work reliably
-    res, err = call_gemini_with_retry(payload, api_key_input=st.session_state.api_key)
-    if res:
-        st.success("API call successful!")
-        st.json(res.json())
-    else:
-        st.error(f"API error: {err}")
-
-    
+if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
     with st.spinner("Generating document..."):
         def get_md(df): return df.to_markdown(index=False)
         cost_info = SOW_COST_TABLE_MAP.get(sow_key, {})
@@ -452,7 +416,7 @@ if st.button("Generate Full SOW", type="primary", use_container_width=True):
         Follow this sequential flow exactly: Main Heading -> Sub-heading -> Paragraph/Table.
 
         # 1 TABLE OF CONTENTS
-        (List sections 1 to 5)
+        (List sections 1 to 10)
 
         # 2 PROJECT OVERVIEW
         ## 2.1 OBJECTIVE
@@ -529,37 +493,51 @@ if st.button("Generate Full SOW", type="primary", use_container_width=True):
         - Do NOT reference other sections
 
 
-
         # 4 SOLUTION ARCHITECTURE
 
-        
-        ## PRICING SUMMARY
+        # 7 ARCHITECTURE & AWS SERVICES
+        ## 7.1 COMPUTE & ORCHESTRATION
+        {', '.join(compute_choices)}
+        ## 7.2 AI & ML SERVICES
+        {', '.join(ai_svcs)}
+        ## 7.3 STORAGE & DATABASE
+        {', '.join(st_svcs)}
+        ## 7.4 UI LAYER
+        {ui_layer}
+
+        # 8 NON-FUNCTIONAL REQUIREMENTS
+        ## 8.1 PERFORMANCE PROFILE
+        {perf}
+        ## 8.2 SECURITY & COMPLIANCE
+        {', '.join(sec)}
+
+        # 9 TIMELINE & PHASING
+        ## 9.1 DURATION
+        {poc_dur}
+        ## 9.2 PHASES BREAKDOWN
+        {get_md(st.session_state.timeline_phases)}
+
+        # 10 FINAL OUTPUTS
+        ## 10.1 DELIVERABLES
+        {', '.join(delivs)}
+        ## 10.2 POST-POC NEXT STEPS
+        {', '.join(nxt)}
+        ## 10.3 PRICING SUMMARY
         {cost_table}
         Cost Ownership: {ownership}
-
-        # 5 RESOURCES & COST ESTIMATES
-
-        Generate a short enterprise-style paragraph (2–3 sentences only, no bullet points).
-
-        Use the cost ownership selection below as a strict rule. Do not contradict it.
-
-        Cost Ownership Selection: {ownership}
-
-        Guidelines:
-        - If ownership is "Funded by AWS": AWS bears infrastructure and service costs.
-        - If ownership is "Funded by Partner": Partner bears development and infrastructure costs.
-        - If ownership is "Funded by Customer": Customer bears all development and infrastructure costs.
-        - If ownership is "Shared": Costs are jointly borne between AWS, Partner, and/or Customer as applicable.
-
-        The wording must:
-        - Reflect the selected use case ({sow_key})
-        - Align with engagement type ({engagement_type})
-        - Reference relevant AI services ({', '.join(ai_svcs)})
-        - Be concise, formal, and suitable for an enterprise SOW
-
         """
-                
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}], 
+            "systemInstruction": {"parts": [{"text": "You are a Solutions Architect. Use # for main headers and ## for subsections. Strict numbering 1-10. Black text only. Professional enterprise tone."}]}
+        }
         
+        # Pass the api_key from the sidebar input
+        res, err = call_gemini_with_retry(payload, api_key_input=api_key)
+        if res:
+            st.session_state.generated_sow = res.json()['candidates'][0]['content']['parts'][0]['text']
+            st.rerun()
+        else:
+            st.error(err)
 
 # --- REVIEW & EXPORT ---
 if st.session_state.generated_sow:
@@ -571,9 +549,9 @@ if st.session_state.generated_sow:
         p_content = st.session_state.generated_sow.replace("Estimate", f'<a href="{calc_url_p}" target="_blank">Estimate</a>')
         
         # Injection logic for the diagram
-        if "# 4 SOLUTION ARCHITECTURE" in p_content:
-            parts = p_content.split("# 4 SOLUTION ARCHITECTURE")
-            st.markdown(parts[0] + "# 4 SOLUTION ARCHITECTURE", unsafe_allow_html=True)
+        if "# 6 SOLUTION ARCHITECTURE" in p_content:
+            parts = p_content.split("# 6 SOLUTION ARCHITECTURE")
+            st.markdown(parts[0] + "# 6 SOLUTION ARCHITECTURE", unsafe_allow_html=True)
             diag_out = SOW_DIAGRAM_MAP.get(sow_key)
             if diag_out and os.path.exists(diag_out):
                 st.image(diag_out, caption=f"{sow_key} Architecture")
