@@ -139,9 +139,15 @@ def create_docx_logic(text_content, branding, sow_name):
 
     # Section Headers Mapping
     headers_map = {
-        "1": "TABLE OF CONTENTS", "2": "PROJECT OVERVIEW", "2.1": "OBJECTIVE", "2.2": "PROJECT SPONSOR(S) / STAKEHOLDER(S) / PROJECT TEAM", "2.3": "ASSUMPTIONS & DEPENDENCIES",
-        "2.4": "POC SUCCESS CRITERIA", "3": "SCOPE OF WORK – TECHNICAL PROJECT PLAN",
-        "4": "SOLUTION ARCHITECTURE", "5": "RESOURCES AND COST ESTIMATES"
+        "1": "TABLE OF CONTENTS",
+        "2": "PROJECT OVERVIEW", 
+        "2.1": "OBJECTIVE", 
+        "2.2": "PROJECT SPONSOR(S) / STAKEHOLDER(S) / PROJECT TEAM",
+        "2.3": "ASSUMPTIONS & DEPENDENCIES",
+        "2.4": "POC SUCCESS CRITERIA", 
+        "3": "SCOPE OF WORK – TECHNICAL PROJECT PLAN",
+        "4": "SOLUTION ARCHITECTURE", 
+        "5": "RESOURCES AND COST ESTIMATES"
         }
 
     lines = text_content.split('\n')
@@ -500,36 +506,7 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
         
         # 5 RESOURCES AND COST ESTIMATES
 
-        # 7 ARCHITECTURE & AWS SERVICES
-        ## 7.1 COMPUTE & ORCHESTRATION
-        {', '.join(compute_choices)}
-        ## 7.2 AI & ML SERVICES
-        {', '.join(ai_svcs)}
-        ## 7.3 STORAGE & DATABASE
-        {', '.join(st_svcs)}
-        ## 7.4 UI LAYER
-        {ui_layer}
-
-        # 8 NON-FUNCTIONAL REQUIREMENTS
-        ## 8.1 PERFORMANCE PROFILE
-        {perf}
-        ## 8.2 SECURITY & COMPLIANCE
-        {', '.join(sec)}
-
-        # 9 TIMELINE & PHASING
-        ## 9.1 DURATION
-        {poc_dur}
-        ## 9.2 PHASES BREAKDOWN
-        {get_md(st.session_state.timeline_phases)}
-
-        # 10 FINAL OUTPUTS
-        ## 10.1 DELIVERABLES
-        {', '.join(delivs)}
-        ## 10.2 POST-POC NEXT STEPS
-        {', '.join(nxt)}
-        ## 10.3 PRICING SUMMARY
-        {cost_table}
-        Cost Ownership: {ownership}
+        
         """
         payload = {
             "contents": [{"parts": [{"text": prompt}]}], 
