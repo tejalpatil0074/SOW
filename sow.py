@@ -529,11 +529,8 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
         # Pass the api_key from the sidebar input
         if api_key:
             res, err = call_gemini_with_retry(payload, api_key_input=api_key)
-                if res:
-                    st.session_state.generated_sow = res.json()['candidates'][0]['content']['parts'][0]['text']
-                    st.rerun()
         else:
-            st.error(err)
+            st.warning("Please enter API Key first")
 
 # --- REVIEW & EXPORT ---
 if st.session_state.generated_sow:
