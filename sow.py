@@ -140,6 +140,9 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
         line = lines[i].strip()
         if not line: i += 1; continue
         clean_line = re.sub(r'#+\s*', '', line).strip()
+        # Remove stray markdown emphasis markers
+        clean_line = re.sub(r'^\*\s*', '', clean_line)
+
         upper = clean_line.upper()
         current_id = None
         for h_id, h_title in headers_map.items():
@@ -183,7 +186,7 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
                                 r[idx].paragraphs[0].add_run(c_text)
             continue
 
-        if "Development Timelines:" in clean_line:
+        if re.search(r'development\s+timeline', clean_line, re.IGNORECASE):
             p_tl = doc.add_paragraph()
             p_tl.add_run("Development Timelines:").bold = True
             cols = timeline_df.columns.tolist()
@@ -215,7 +218,7 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
             p_b.add_run(re.sub(r'^[\-\*]\s*', '', line).strip())
         else:
             p_n = doc.add_paragraph()
-            p_n.add_run(clean_line)
+            p_n.add_run(clean_line.replace("*", ""))
         i += 1
     bio = io.BytesIO(); doc.save(bio); return bio.getvalue()
 
@@ -420,9 +423,10 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
         o Stakeholder iterative reviews and formal sign-off.
 
         Development Timelines: 
+        (Leave empty, I will insert the table manually).
 
         # 4  Solution Architecture / Architectural Diagram
-
+        
         *Specifics to be discussed basis POC
         {cost_table}
 
