@@ -409,15 +409,26 @@ nxt = st.multiselect("Next Steps:", ["Production proposal", "Scaling roadmap", "
 # --- GENERATION ---
 if st.button("Generate Full SOW", type="primary", use_container_width=True):
     api_key = st.session_state.api_key
-    if api_key:
-        res, err = call_gemini_with_retry(payload, api_key_input = api_key)
-        if res:
-            st.success("SOW generated successfully!")
-        else:
-            st.error(f"API error: {err}")
-    else:
-        st.warning("Please enter your Gemini API key to generate the SOW.")
+    if not api_key:
+        st.warning("Please enter your Gemini API key first!")
+        st.stop()  # prevents code below from running without a key
 
+    # payload must be defined here as well
+    payload = {
+        "prompt": "Hello Gemini!",
+        "temperature": 0.7,
+        "maxOutputTokens": 256
+    }
+
+    # Now this will work reliably
+    res, err = call_gemini_with_retry(payload, api_key_input=api_key)
+    if res:
+        st.success("API call successful!")
+        st.write(res.json())
+    else:
+        st.error(f"API error: {err}")
+
+    
     with st.spinner("Generating document..."):
         def get_md(df): return df.to_markdown(index=False)
         cost_info = SOW_COST_TABLE_MAP.get(sow_key, {})
