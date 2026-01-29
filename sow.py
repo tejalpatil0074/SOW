@@ -114,6 +114,7 @@ def create_docx_logic(text_content, branding, sow_name):
     style.font.name = 'Times New Roman'
     style.font.size = Pt(11)
     
+    
     # Page 1 Cover
     p = doc.add_paragraph()
     if os.path.exists(AWS_PN_LOGO): doc.add_picture(AWS_PN_LOGO, width=Inches(1.6))
@@ -149,6 +150,7 @@ def create_docx_logic(text_content, branding, sow_name):
         "4": "SOLUTION ARCHITECTURE", 
         "5": "RESOURCES AND COST ESTIMATES"
         }
+    allowed_main_sections = {"1", "2", "3", "4", "5"}
 
     lines = text_content.split('\n')
     rendered_sections = {h_id: False for h_id in headers_map.keys()}
@@ -156,6 +158,10 @@ def create_docx_logic(text_content, branding, sow_name):
 
     while i < len(lines):
         line = lines[i].strip()
+        # STOP processing after section 5
+    if re.match(r'^#\s*[6-9]\b|^#\s*10\b', line):
+        break
+
         if not line: i += 1; continue
         
         # Identification Logic
@@ -175,7 +181,7 @@ def create_docx_logic(text_content, branding, sow_name):
             else: 
                 i += 1; continue
 
-        if current_id:
+        if current_id and current_id.split('.')[0] in allowed_main_sections:
             if in_toc and current_id == "2": 
                 doc.add_page_break()
                 in_toc = False
@@ -505,6 +511,11 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
         # 4 SOLUTION ARCHITECTURE
         
         # 5 RESOURCES AND COST ESTIMATES
+
+        STRICT STOP RULE:
+        Do NOT generate any section numbered 6, 7, 8, 9, or 10.
+        End the document immediately after section #5 RESOURCES AND COST ESTIMATES.
+
 
         
         """
