@@ -145,7 +145,7 @@ def create_docx_logic(text_content, branding, sow_name):
         }
 
     lines = text_content.split('\n')
-    rendered_sections = {str(i): False for i in range(1, 11)}
+    rendered_sections = {h_id: False for h_id in headers_map.keys()}
     i, in_toc, content_started = 0, False, False
 
     while i < len(lines):
@@ -163,8 +163,11 @@ def create_docx_logic(text_content, branding, sow_name):
                 current_id = h_id; break
         
         if not content_started:
-            if current_id == "1": content_started = True
-            else: i += 1; continue
+            if current_id == "1": 
+                content_started = True
+                in_toc = True
+            else: 
+                i += 1; continue
 
         if current_id:
             if in_toc and current_id == "2": 
@@ -550,8 +553,8 @@ if st.session_state.generated_sow:
         
         # Injection logic for the diagram
         if "# 6 SOLUTION ARCHITECTURE" in p_content:
-            parts = p_content.split("# 6 SOLUTION ARCHITECTURE")
-            st.markdown(parts[0] + "# 6 SOLUTION ARCHITECTURE", unsafe_allow_html=True)
+            parts = p_content.split("# 4 SOLUTION ARCHITECTURE")
+            st.markdown(parts[0] + "# 4 SOLUTION ARCHITECTURE", unsafe_allow_html=True)
             diag_out = SOW_DIAGRAM_MAP.get(sow_key)
             if diag_out and os.path.exists(diag_out):
                 st.image(diag_out, caption=f"{sow_key} Architecture")
