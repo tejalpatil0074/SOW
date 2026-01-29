@@ -420,7 +420,6 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
         o Stakeholder iterative reviews and formal sign-off.
 
         Development Timelines: 
-        (Leave empty, I will insert the table manually).
 
         # 4  Solution Architecture / Architectural Diagram
 
