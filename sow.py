@@ -460,28 +460,44 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
 
         # 3 SCOPE OF WORK – TECHNICAL PROJECT PLAN
 
-        Generate detailed, enterprise-grade content strictly under the following headings.
-        Do not add or rename headings.
+        Generate enterprise-grade functional content specific to the selected use case.
+
+        Follow this exact structure and order. Do NOT rename or reorder headings.
 
         ## A. Infrastructure Setup
-        Describe cloud environment setup, access control, and foundational services.
+        Describe cloud environment setup, IAM, networking, security baseline, and foundational AWS services.
 
-        ## B. SOP Parsing & Knowledge PreparatioN
+        ## B. Core Workflows
+        Describe the end-to-end AI workflows relevant to the use case, including ingestion, preprocessing, inference, and orchestration.
 
-        ## C. AgentCore Web-Guided Comparison Engine
-        Describe end-to-end functional workflows specific to the selected use case.
+        ## C. Backend Components
+        Describe backend services, LLM integration, vector databases, APIs, event handling, and system orchestration.
 
-        ## D. Recommendation Engine
-        Describe backend services, integrations, data storage, and orchestration layers.
+        ## D. UI / Integration Layer
+        Describe UI, dashboards, APIs, and system integrations if applicable.
 
-        ## E. UI Development
+        ## E. Testing and Feedback
+        Describe testing strategy, validation approach, stakeholder reviews, and iterative improvements.
 
-        ## F. Testing and Feedback
-        Describe validation approach, testing strategy, and feedback-driven iteration.
+        After completing ALL narrative content above, generate a section titled exactly:
+
+        ### Development Timelines
+
+        Immediately below this heading, generate a Markdown table.
+
+        MANDATORY TABLE RULES:
+        - Use Markdown table syntax only
+        - Columns MUST be:
+        Phase | Task | Wk1 | Wk2 | Wk3 | Wk4 | Wk5 | Wk6
+        - Populate tasks and phases based on the selected use case ({sow_key})
+        - Mark active weeks with ✔
+        - Timeline length should align with engagement type ({engagement_type})
+        - Do NOT add explanations before or after the table
+        - Do NOT reference other sections
+
 
 
         # 4 SOLUTION ARCHITECTURE
-        (Detailed technical description for the proposed AWS architecture)
 
         
         ## PRICING SUMMARY
