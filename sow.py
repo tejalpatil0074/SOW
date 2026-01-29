@@ -485,7 +485,7 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
         {cost_table}
         Cost Ownership: {ownership}
 
-        # 11 RESOURCES & COST ESTIMATES
+        # 5 RESOURCES & COST ESTIMATES
 
         Generate a short enterprise-style paragraph (2–3 sentences only, no bullet points).
 
