@@ -413,19 +413,20 @@ if st.button("Generate Full SOW", type="primary", use_container_width=True):
         st.stop()  # prevents code below from running without a key
 
     # payload must be defined here as well
+    # Updated payload with correct Gemini schema
     payload = {
-        "messages": [
+        "contents": [
             {
-                "author": "user",
-                "content": [
-                    {"type": "text", "text": "Generate a formal enterprise SOW for Beauty Advisor POC SOW in the Retail industry."}
+                "parts": [
+                    {"text": prompt}  # Use the dynamic prompt you defined below
                 ]
             }
         ],
-        "temperature": 0.7,
-        "maxOutputTokens": 2000
+        "generationConfig": {
+            "temperature": 0.7,
+            "maxOutputTokens": 2000
+        }
     }
-
 
     # Now this will work reliably
     res, err = call_gemini_with_retry(payload, api_key_input=st.session_state.api_key)
