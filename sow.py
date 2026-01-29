@@ -489,18 +489,22 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
 
         ### Development Timelines
 
-        Immediately below this heading, generate a Markdown table.
+        ### Development Timelines
 
-        MANDATORY TABLE RULES:
-        - Use Markdown table syntax only
-        - Columns MUST be:
-        Phase | Task | Wk1 | Wk2 | Wk3 | Wk4 | Wk5 | Wk6
-        - Populate tasks and phases based on the selected use case ({sow_key})
-        - Mark active weeks with ✔
-        - Timeline length should align with engagement type ({engagement_type})
-        - Do NOT add explanations before or after the table
-        - Do NOT reference other sections
+        Immediately below this heading, generate a Markdown table following these strict formatting rules:
 
+        1. **EXACT COLUMN HEADERS**: You MUST use these exact column names in this exact order:
+           | Phase | Task | Wk1 | Wk2 | Wk3 | Wk4 | Wk5 | Wk6 |
+           | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+
+        2. **CONTENT MAPPING**: 
+           - Extract tasks from the project plan (Infrastructure, Workflows, Backend, UI, Testing) [cite: 42-69].
+           - Phases should include: Initiation & Setup, Data & Ingestion, Core Development, Validation & UI, and Deployment & Closure[cite: 71].
+           - Mark active weeks with the "✔" symbol[cite: 71].
+
+        3. **CONSTRAINTS**:
+           - No introductory text or concluding summaries.
+           - Only include the table.
 
         # 4 SOLUTION ARCHITECTURE
         
@@ -531,7 +535,7 @@ if st.session_state.generated_sow:
         p_content = st.session_state.generated_sow.replace("Estimate", f'<a href="{calc_url_p}" target="_blank">Estimate</a>')
         
         # Injection logic for the diagram
-        if "# 6 SOLUTION ARCHITECTURE" in p_content:
+        if "# 4 SOLUTION ARCHITECTURE" in p_content:
             parts = p_content.split("# 4 SOLUTION ARCHITECTURE")
             st.markdown(parts[0] + "# 4 SOLUTION ARCHITECTURE", unsafe_allow_html=True)
             diag_out = SOW_DIAGRAM_MAP.get(sow_key)
