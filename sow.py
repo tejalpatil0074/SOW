@@ -489,22 +489,18 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
 
         ### Development Timelines
 
-        ### Development Timelines
+        Immediately below this heading, generate a Markdown table following these strict formatting rules
 
-        Immediately below this heading, generate a Markdown table following these strict formatting rules:
-
-        1. **EXACT COLUMN HEADERS**: You MUST use these exact column names in this exact order:
-           | Phase | Task | Wk1 | Wk2 | Wk3 | Wk4 | Wk5 | Wk6 |
-           | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-
-        2. **CONTENT MAPPING**: 
-           - Extract tasks from the project plan (Infrastructure, Workflows, Backend, UI, Testing) [cite: 42-69].
-           - Phases should include: Initiation & Setup, Data & Ingestion, Core Development, Validation & UI, and Deployment & Closure[cite: 71].
-           - Mark active weeks with the "✔" symbol[cite: 71].
-
-        3. **CONSTRAINTS**:
-           - No introductory text or concluding summaries.
-           - Only include the table.
+        Construct the timeline table using these EXACT rules:
+        1. HEADERS: | Phase | Task | Wk1 | Wk2 | Wk3 | Wk4 | Wk5 | Wk6 |
+        2. ROWS: Include exactly five rows corresponding to:
+           - A. Infrastructure Setup
+           - B. Core Workflows
+           - C. Backend Components
+           - D. UI / Integration Layer
+           - E. Testing and Feedback
+        3. DATA: Use '✔' to indicate activity. Map the tasks from the provided source data.
+        4. NO EXTRA TEXT: Do not add any text before or after the table.
 
         # 4 SOLUTION ARCHITECTURE
         
