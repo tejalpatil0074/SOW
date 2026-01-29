@@ -112,7 +112,7 @@ def create_docx_logic(text_content, branding, sow_name):
     # Global document style: Times New Roman, Black
     style = doc.styles['Normal']
     style.font.name = 'Times New Roman'
-    style.font.size = Pt(11)
+    style.font.size = Pt(12)
     
     # Page 1 Cover
     p = doc.add_paragraph()
@@ -509,11 +509,7 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
         - Be concise, formal, and suitable for an enterprise SOW
 
         """
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}], 
-            "systemInstruction": {"parts": [{"text": "You are a Solutions Architect. Use # for main headers and ## for subsections. Strict numbering 1-10. Black text only. Professional enterprise tone."}]}
-        }
-        
+                
         # Pass the api_key from the sidebar input
         res, err = call_gemini_with_retry(payload, api_key_input=api_key)
         if res:
