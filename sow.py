@@ -189,20 +189,44 @@ def create_docx_logic(text_content, branding, sow_name):
                 h = doc.add_heading(clean_line.upper(), level=1)
                 for run in h.runs: 
                     run.font.name = 'Times New Roman'
-                    run.font.color.rgb = RGBColor(0, 0, 0)
+                    run.font.color.rgb = RGBColor(0, 0, 0) 
                 
                 rendered_sections[current_id] = True
                 if current_id == "1": in_toc = True
                 
                 if current_id == "4":
+                    for use_case in selected_use_cases:
+                        doc.add_heading(use_case, level=3)
                     diag = SOW_DIAGRAM_MAP.get(sow_name)
                     if diag and os.path.exists(diag):
                         doc.add_picture(diag, width=Inches(6.0))
-                        p_cap = doc.add_paragraph(f"{sow_name} – Architecture Diagram")
-                        p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                        for run in p_cap.runs: 
-                            run.font.name = 'Times New Roman'
-                            run.font.color.rgb = RGBColor(0, 0, 0)
+
+                    cost_data = SOW_COST_TABLE_MAP.get(use_case)
+
+                    if cost_data:
+                        doc.add_heading("Cost Estimates", level=4)
+                        table = doc.add_table(rows=1, col=2)
+                        table.style = "table Grid"
+                        hdr_cells = table.rows[0].cells
+                        hdr_cells[0].text = "Environment"
+                        hdr_cells[1].text = "Estimated Cost (USD)"
+
+                        if "poc_cost" in cost_data:
+                        row = table.add_row().cells
+                        row[0].text = "POC"
+                        row[1].text = cost_data["poc_cost"]
+
+                        if "prod_cost" in cost_data:
+                        row = table.add_row().cells
+                        row[0].text = "Production"
+                        row[1].text = cost_data["prod_cost"]
+
+                        doc.add_paragraph()  # spacing
+                for run in p_cap.runs: 
+                    run.font.name = 'Times New Roman'
+                    run.font.color.rgb = RGBColor(0, 0, 0)
+
+                    
             i += 1; continue
             
         if line.startswith('|') and i + 1 < len(lines) and lines[i+1].strip().startswith('|'):
