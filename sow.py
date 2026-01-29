@@ -100,7 +100,7 @@ def add_hyperlink(paragraph, text, url):
     new_run.append(t); hyperlink.append(new_run)
     paragraph._p.append(hyperlink)
 
-def create_docx_logic(text_content, branding, sow_name):
+def create_docx_logic(text_content, branding, sow_name, selected_use_cases):
     from docx import Document
     from docx.shared import Inches, Pt, RGBColor
     from docx.enum.text import WD_ALIGN_PARAGRAPH
