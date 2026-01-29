@@ -414,13 +414,16 @@ if st.button("Generate Full SOW", type="primary", use_container_width=True):
 
     # payload must be defined here as well
     payload = {
-        "instances": [
-            {"content": "Hello Gemini!"}
+        "messages": [
+            {
+                "author": "user",
+                "content": [
+                    {"type": "text", "text": "Generate a formal enterprise SOW for Beauty Advisor POC SOW in the Retail industry."}
+                ]
+            }
         ],
-        "parameters": {
-            "temperature": 0.7,
-            "maxOutputTokens": 256
-        }
+        "temperature": 0.7,
+        "maxOutputTokens": 2000
     }
 
 
