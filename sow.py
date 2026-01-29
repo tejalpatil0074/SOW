@@ -300,10 +300,14 @@ def reset_all():
 
 # --- 1. PROJECT INTAKE ---
 with st.sidebar:
-    st.image("https://img.icons8.com/fluency/96/artificial-intelligence.png", width=60)
-    st.title("Architect Pro")
-    with st.expander("🔑 API Key", expanded=True):
-        api_key = st.text_input("Gemini API Key", type="password", help="Enter your Gemini API key to resolve Permission Denied errors.")
+    if "api_key" not in st.session_state:
+        st.session_state.api_key = ""
+    st.session_state.api_key = st.text_input(
+        "Gemini API Key",
+        type="password",
+        value=st.session_state.api_key,
+        help="Enter your Gemini API key"
+    )
     st.divider()
     st.header("📋 1. Project Intake")
     sow_opts = ["1. L1 Support Bot POC SOW", "2. Beauty Advisor POC SOW", "3. Ready Search POC Scope of Work Document", "4. AI based Image Enhancement POC SOW", "5. AI based Image Inspection POC SOW", "6. Gen AI for SOP POC SOW", "7. Project Scope Document", "8. Gen AI Speech To Speech", "9. PoC Scope Document"]
@@ -403,7 +407,13 @@ delivs = st.multiselect("Deliverables:", ["PoC architecture", "Working demo", "S
 nxt = st.multiselect("Next Steps:", ["Production proposal", "Scaling roadmap", "Security review", "Performance optimization", "Model fine-tuning"], default=["Production proposal", "Scaling roadmap"])
 
 # --- GENERATION ---
-if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
+if st.button("Generate Full SOW", type="primary", use_container_width=True):
+    api_key = st.session_state.api_key
+    if api_key:
+        res, err = call_gemini_with_retry(payload, api_key_input=api_key)
+    else:
+        st.warning("Please enter your Gemini API key to generate the SOW.")
+
     with st.spinner("Generating document..."):
         def get_md(df): return df.to_markdown(index=False)
         cost_info = SOW_COST_TABLE_MAP.get(sow_key, {})
@@ -526,11 +536,7 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
 
         """
                 
-        # Pass the api_key from the sidebar input
-        if api_key:
-            res, err = call_gemini_with_retry(payload, api_key_input=api_key)
-        else:
-            st.warning("Please enter API Key first")
+        
 
 # --- REVIEW & EXPORT ---
 if st.session_state.generated_sow:
