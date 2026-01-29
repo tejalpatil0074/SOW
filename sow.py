@@ -211,12 +211,12 @@ def create_docx_logic(text_content, branding, sow_name):
                         hdr_cells[0].text = "Environment"
                         hdr_cells[1].text = "Estimated Cost (USD)"
 
-                        if "poc_cost" in cost_data:
+                    if "poc_cost" in cost_data:
                         row = table.add_row().cells
                         row[0].text = "POC"
                         row[1].text = cost_data["poc_cost"]
 
-                        if "prod_cost" in cost_data:
+                    if "prod_cost" in cost_data:
                         row = table.add_row().cells
                         row[0].text = "Production"
                         row[1].text = cost_data["prod_cost"]
