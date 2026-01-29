@@ -171,15 +171,17 @@ def create_docx_logic(text_content, branding, sow_name):
                 doc.add_page_break()
                 in_toc = False
                 
-            if not rendered_sections[current_id]:
+            if current_id not in rendered_sections:
                 rendered_sections[current_id] = False
+
+            if not rendered_sections[current_id]:
                 h = doc.add_heading(clean_line.upper(), level=1)
-                for run in h.runs: 
+                for run in h.runs:
                     run.font.name = 'Times New Roman'
                     run.font.color.rgb = RGBColor(0, 0, 0)
-                
+
                 rendered_sections[current_id] = True
-                if current_id == "1": in_toc = True
+
                 
                 if current_id == "4":
                     diag = SOW_DIAGRAM_MAP.get(sow_name)
