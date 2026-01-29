@@ -411,6 +411,10 @@ if st.button("Generate Full SOW", type="primary", use_container_width=True):
     api_key = st.session_state.api_key
     if api_key:
         res, err = call_gemini_with_retry(payload, api_key_input=api_key)
+        if res:
+            st.success("SOW generated successfully!")
+        else:
+            st.error(f"API error: {err}")
     else:
         st.warning("Please enter your Gemini API key to generate the SOW.")
 
