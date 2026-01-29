@@ -256,7 +256,7 @@ def create_docx_logic(text_content, branding, sow_name):
 
 def call_gemini_with_retry(payload, api_key_input=""):
     # Default to environment injection if input is empty
-    apiKey = api_key_input if api_key_input else ""
+    api_key = api_key_input if api_key_input else ""
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key={apiKey}"
     
     delays = [1, 2, 4, 8, 16]
@@ -528,7 +528,7 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
                 
         # Pass the api_key from the sidebar input
         if api_key:
-            res, err = call_gemini_with_retry(payload, api_key_input=apiKey)
+            res, err = call_gemini_with_retry(payload, api_key_input=api_key)
         else:
             st.warning("Please enter API Key first")
 
