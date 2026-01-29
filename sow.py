@@ -582,5 +582,5 @@ if st.session_state.generated_sow:
     
     if st.button("💾 Prepare Microsoft Word"):
         branding = {"sow_name": sow_key, "customer_logo_bytes": customer_logo.getvalue() if customer_logo else None, "doc_date_str": doc_date.strftime("%d %B %Y")}
-        docx_data = create_docx_logic(st.session_state.generated_sow, branding, sow_key, selected_use_cases)
+        docx_data = create_docx_logic(st.session_state.generated_sow, branding, sow_key)
         st.download_button("📥 Download SOW (.docx)", docx_data, f"SOW_{sow_key.replace(' ', '_')}.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", use_container_width=True)
