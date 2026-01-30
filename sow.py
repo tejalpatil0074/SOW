@@ -176,6 +176,9 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
                     except Exception:
                         doc.add_paragraph("Architecture diagram unavailable.")
 
+            i +=1
+            continue
+
             
         if line.startswith('|') and i + 1 < len(lines) and lines[i+1].strip().startswith('|'):
             # Skip Markdown timeline tables as we generate them manually
@@ -211,7 +214,8 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
                 r = t.add_row().cells
                 for idx, col_name in enumerate(cols):
                     val = str(row[col_name])
-                    if val.strip().upper() == "X": 
+                    if val.strip().upper() == "X":
+                        r[idx].paragraphs[0].clear()
                         set_cell_shading(r[idx])
                     else: 
                         r[idx].paragraphs[0].add_run(val)
