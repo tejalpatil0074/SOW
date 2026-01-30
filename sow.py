@@ -18,7 +18,7 @@ ASSETS_DIR = os.path.join(BASE_DIR, "diagrams")
 
 AWS_PN_LOGO = os.path.join(ASSETS_DIR, "aws partner logo.jpg")
 ONETURE_LOGO = os.path.join(ASSETS_DIR, "oneture logo1.jpg")
-AWS_ADV_LOGO = os.path.join(ASSETS_DIR, "aws advanced logo.jpg")
+AWS_ADV_LOGO = os.path.join(ASSETS_DIR, "aws advanced logo1.jpg")
 
 SOW_COST_TABLE_MAP = { 
     "L1 Support Bot POC SOW": { "poc_cost": "3,536.40 USD" }, 
@@ -140,41 +140,24 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
         line = lines[i].strip()
         if not line: i += 1; continue
         clean_line = re.sub(r'#+\s*', '', line).strip()
-        # Remove stray markdown emphasis markers
-        clean_line = re.sub(r'^\*\s*', '', clean_line)
-
+        upper = clean_line.upper()
         current_id = None
-        for h_id in headers_map:
-            if re.match(rf"^{h_id}\s+", clean_line):
-                current_id = h_id
-                break
-
+        for h_id, h_title in headers_map.items():
+            if re.match(rf"^{h_id}[\.\s]+.*{re.escape(h_title.split()[0].upper())}", upper):
+                current_id = h_id; break
 
         if current_id:
-            if current_id != "2":
-                doc.add_page_break()
-
+            if current_id != "2": doc.add_page_break()
             h = doc.add_heading(clean_line.upper(), level=1)
-            for run in h.runs:
-                run.bold = True
-                run.font.color.rgb = RGBColor(0, 0, 0)
-
-            # ✅ INSERT ARCHITECTURE IMAGE IMMEDIATELY
+            for run in h.runs: run.bold = True; run.font.color.rgb = RGBColor(0, 0, 0)
+            
             if current_id == "4":
-                diag = SOW_DIAGRAM_MAP.get(sow_name.strip())
+                diag = SOW_DIAGRAM_MAP.get(sow_name)
                 if diag and os.path.exists(diag):
-                    pic_p = doc.add_paragraph()
-                    pic_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                    pic_p.add_run().add_picture(diag, width=Inches(5.8))
-
-                    cap = doc.add_paragraph(f"{sow_name} – Architecture Diagram")
-                    cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                else:
-                    doc.add_paragraph("Architecture diagram unavailable.")
-
-            i += 1
-            continue
-
+                    doc.add_picture(diag, width=Inches(5.5))
+                    p_cap = doc.add_paragraph(f"{sow_name} – Architecture Diagram")
+                    p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            i += 1; continue
             
         if line.startswith('|') and i + 1 < len(lines) and lines[i+1].strip().startswith('|'):
             # Skip Markdown timeline tables as we generate them manually
@@ -200,7 +183,7 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
                                 r[idx].paragraphs[0].add_run(c_text)
             continue
 
-        if re.search(r'development\s+timeline', clean_line, re.IGNORECASE):
+        if "Development Timelines:" in clean_line:
             p_tl = doc.add_paragraph()
             p_tl.add_run("Development Timelines:").bold = True
             cols = timeline_df.columns.tolist()
@@ -232,7 +215,7 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
             p_b.add_run(re.sub(r'^[\-\*]\s*', '', line).strip())
         else:
             p_n = doc.add_paragraph()
-            p_n.add_run(clean_line.replace("*", ""))
+            p_n.add_run(clean_line)
         i += 1
     bio = io.BytesIO(); doc.save(bio); return bio.getvalue()
 
@@ -440,7 +423,8 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
         (Leave empty, I will insert the table manually).
 
         # 4  Solution Architecture / Architectural Diagram
-        
+        (Detailed technical description).
+
         *Specifics to be discussed basis POC
         {cost_table}
 
@@ -450,7 +434,7 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
         Deliverables: {', '.join(delivs)}.
         """
         payload = {"contents": [{"parts": [{"text": prompt}]}], "systemInstruction": {"parts": [{"text": "AWS Solutions Architect. Adhere to sections 2-5 numbering. BOLD main headings. Use letters A, B, C for sub-headings in Section 3."}]}}
-        res, err = call_gemini_with_retry(payload, api_key_input=api_key) 
+        res, err = call_gemini_with_retry(payload, api_key_input=api_key)
         if res:
             st.session_state.generated_sow = res.json()['candidates'][0]['content']['parts'][0]['text']
             st.rerun()
