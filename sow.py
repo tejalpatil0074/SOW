@@ -18,7 +18,7 @@ ASSETS_DIR = os.path.join(BASE_DIR, "diagrams")
 
 AWS_PN_LOGO = os.path.join(ASSETS_DIR, "aws partner logo.jpg")
 ONETURE_LOGO = os.path.join(ASSETS_DIR, "oneture logo1.jpg")
-AWS_ADV_LOGO = os.path.join(ASSETS_DIR, "aws advanced logo1    .jpg")
+AWS_ADV_LOGO = os.path.join(ASSETS_DIR, "aws advanced logo1.jpg")
 
 SOW_COST_TABLE_MAP = { 
     "L1 Support Bot POC SOW": { "poc_cost": "3,536.40 USD" }, 
@@ -96,7 +96,15 @@ def add_hyperlink(paragraph, text, url):
     new_run.append(t); hyperlink.append(new_run)
     paragraph._p.append(hyperlink)
 
+def clean_markdown(text):
+    text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)   # remove **bold**
+    text = re.sub(r'\*(.*?)\*', r'\1', text)       # remove *italic*
+    text = re.sub(r'`(.*?)`', r'\1', text)         # remove `code`
+    return text
+
 def create_docx_logic(text_content, branding, sow_name, timeline_df):
+    sow_name = sow_name.strip()   # 🔥 REQUIRED
+
     doc = Document()
     style = doc.styles['Normal']
     style.font.name = 'Times New Roman'
@@ -139,7 +147,10 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
     while i < len(lines):
         line = lines[i].strip()
         if not line: i += 1; continue
-        clean_line = re.sub(r'#+\s*', '', line).strip()
+        clean_line = clean_markdown(
+            re.sub(r'#+\s*', '', line).strip()
+        )
+
         upper = clean_line.upper()
         current_id = None
         for h_id, h_title in headers_map.items():
@@ -151,13 +162,20 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
             h = doc.add_heading(clean_line.upper(), level=1)
             for run in h.runs: run.bold = True; run.font.color.rgb = RGBColor(0, 0, 0)
             
+            from PIL import Image
+
             if current_id == "4":
                 diag = SOW_DIAGRAM_MAP.get(sow_name)
-                if diag and os.path.exists(diag_out):
-                    doc.add_picture(diag, width=Inches(5.5))
-                    p_cap = doc.add_paragraph(f"{sow_name} – Architecture Diagram")
-                    p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            i += 1; continue
+                if diag and os.path.exists(diag):
+                    try:
+                        with Image.open(diag) as img:
+                            img.verify()  # validate image
+                        doc.add_picture(diag, width=Inches(5.5))
+                        p_cap = doc.add_paragraph(f"{sow_name} – Architecture Diagram")
+                        p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    except Exception:
+                        doc.add_paragraph("Architecture diagram unavailable.")
+
             
         if line.startswith('|') and i + 1 < len(lines) and lines[i+1].strip().startswith('|'):
             # Skip Markdown timeline tables as we generate them manually
@@ -210,9 +228,14 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
             p_b = doc.add_paragraph(style="List Bullet")
             p_b.paragraph_format.left_indent = Inches(0.5)
             p_b.add_run(line.strip()[2:].strip())
-        elif line.startswith('- ') or line.startswith('* '):
+        elif line.strip().startswith(('* ', '- ')):
             p_b = doc.add_paragraph(style="List Bullet")
-            p_b.add_run(re.sub(r'^[\-\*]\s*', '', line).strip())
+            p_b.add_run(
+                clean_markdown(
+                    re.sub(r'^[\-\*]\s*', '', line).strip()
+                )
+            )
+
         else:
             p_n = doc.add_paragraph()
             p_n.add_run(clean_line)
@@ -476,7 +499,7 @@ if st.session_state.generated_sow:
             elif re.match(s4_pattern, p, re.IGNORECASE): 
                 st.markdown(f"**{p}**", unsafe_allow_html=True)
                 diag_out = SOW_DIAGRAM_MAP.get(sow_key.strip())
-                if diag_out and os.path.exists(diag_out): 
+                if diag_out and os.path.exists(diag): 
                     st.image(diag_out, caption=f"{sow_key} Architecture Diagram")
             else:
                 final_p = p.replace("Link", f'<a href="{calc_url_p}" target="_blank">Link</a>')
