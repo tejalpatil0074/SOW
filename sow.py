@@ -451,7 +451,7 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
         # 4  Solution Architecture / Architectural Diagram
         (No technical description Needed).
 
-        *Specifics to be discussed basis POC
+        
         {cost_table}
 
         # 5  RESOURCES & COST ESTIMATES
