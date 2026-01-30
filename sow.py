@@ -18,7 +18,7 @@ ASSETS_DIR = os.path.join(BASE_DIR, "diagrams")
 
 AWS_PN_LOGO = os.path.join(ASSETS_DIR, "aws partner logo.jpg")
 ONETURE_LOGO = os.path.join(ASSETS_DIR, "oneture logo1.jpg")
-AWS_ADV_LOGO = os.path.join(ASSETS_DIR, "aws advanced logo1.jpg")
+AWS_ADV_LOGO = os.path.join(ASSETS_DIR, "aws advanced logo1    .jpg")
 
 SOW_COST_TABLE_MAP = { 
     "L1 Support Bot POC SOW": { "poc_cost": "3,536.40 USD" }, 
@@ -153,7 +153,7 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
             
             if current_id == "4":
                 diag = SOW_DIAGRAM_MAP.get(sow_name)
-                if diag and os.path.exists(diag):
+                if diag and os.path.exists(diag_out):
                     doc.add_picture(diag, width=Inches(5.5))
                     p_cap = doc.add_paragraph(f"{sow_name} – Architecture Diagram")
                     p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
