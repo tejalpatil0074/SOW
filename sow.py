@@ -215,7 +215,6 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
                 for idx, col_name in enumerate(cols):
                     val = str(row[col_name])
                     if val.strip().upper() == "X":
-                        r[idx].paragraphs[0].clear()
                         set_cell_shading(r[idx])
                     else: 
                         r[idx].paragraphs[0].add_run(val)
