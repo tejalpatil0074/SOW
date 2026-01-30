@@ -443,10 +443,10 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
         o Stakeholder iterative reviews and formal sign-off.
 
         Development Timelines: 
-        (Leave empty, I will insert the table manually).
+        (Don't Leave empty, I will not insert the table manually).
 
         # 4  Solution Architecture / Architectural Diagram
-        (No Detailed technical description Needed).
+        (No technical description Needed).
 
         *Specifics to be discussed basis POC
         {cost_table}
