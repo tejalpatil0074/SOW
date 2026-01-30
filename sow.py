@@ -18,7 +18,7 @@ ASSETS_DIR = os.path.join(BASE_DIR, "diagrams")
 
 AWS_PN_LOGO = os.path.join(ASSETS_DIR, "aws partner logo.jpg")
 ONETURE_LOGO = os.path.join(ASSETS_DIR, "oneture logo1.jpg")
-AWS_ADV_LOGO = os.path.join(ASSETS_DIR, "aws advanced logo1.jpg")
+AWS_ADV_LOGO = os.path.join(ASSETS_DIR, "aws advanced logo.jpg")
 
 SOW_COST_TABLE_MAP = { 
     "L1 Support Bot POC SOW": { "poc_cost": "3,536.40 USD" }, 
@@ -446,7 +446,7 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
         (Leave empty, I will insert the table manually).
 
         # 4  Solution Architecture / Architectural Diagram
-        (Detailed technical description).
+        (No Detailed technical description Needed).
 
         *Specifics to be discussed basis POC
         {cost_table}
