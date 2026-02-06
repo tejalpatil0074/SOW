@@ -247,7 +247,7 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
             p_b.add_run(line.strip()[2:].strip().replace('*', ''))
         elif line.startswith('- ') or line.startswith('* '):
             p_b = doc.add_paragraph(style="List Bullet")
-            p_b.add_run(re.sub(r'^[\-\]\s', '', line).strip().replace('*', ''))
+            p_b.add_run(re.sub(r'^[\-\]\s]+', '', line).strip().replace('*', ''))
         else:
             p_n = doc.add_paragraph()
             p_n.add_run(clean_line_no_ast)
