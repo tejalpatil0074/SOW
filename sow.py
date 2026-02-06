@@ -298,7 +298,7 @@ with st.sidebar:
     solution_type = st.selectbox("1.1 Solution Type", sow_opts)
     if solution_type == "Other (Custom Use Case)":
         custom_name = st.text_input("Enter Custom Use Case Name:", value="Custom GenAI Solution")
-        sow_key = st.text_input("Enter Custom Use Case Name:", value="Custom GenAI Solution")
+        sow_key = st.text_input("Enter Custom Use Case Name:", value="Custom GenAI Solution", key="custom_sow_input")
     else:
         sow_key = solution_type.split(". ", 1)[1] if ". " in solution_type else solution_type
         
