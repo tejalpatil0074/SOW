@@ -296,6 +296,11 @@ with st.sidebar:
     st.header("📋 1. Project Intake")
     sow_opts = ["1. L1 Support Bot POC SOW", "2. Beauty Advisor POC SOW", "3. Ready Search POC Scope of Work Document", "4. AI based Image Enhancement POC SOW", "5. AI based Image Inspection POC SOW", "6. Gen AI for SOP POC SOW", "7. Project Scope Document", "8. Gen AI Speech To Speech", "9. PoC Scope Document"]
     solution_type = st.selectbox("1.1 Solution Type", sow_opts)
+    if solution_type == "Other (Custom Use Case)":
+        sow_key = st.text_input("Enter Custom Use Case Name:", value="Custom GenAI Solution")
+    else:
+        sow_key = solution_type.split(". ", 1)[1] if ". " in solution_type else solution_type
+        
     sow_key = solution_type.split(". ", 1)[1] if ". " in solution_type else solution_type
     engagement_type = st.selectbox("1.2 Engagement Type", ["Proof of Concept (PoC)", "Pilot", "MVP", "Production Rollout", "Assessment / Discovery", "Support"])
     industry_type = st.selectbox("1.3 Industry / Domain", ["Retail / E-commerce", "BFSI", "Manufacturing", "Telecom", "Healthcare", "Energy / Utilities", "Logistics", "Media", "Government", "Other (specify)"])
