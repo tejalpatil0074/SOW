@@ -297,7 +297,7 @@ with st.sidebar:
     sow_opts = ["1. L1 Support Bot POC SOW", "2. Beauty Advisor POC SOW", "3. Ready Search POC Scope of Work Document", "4. AI based Image Enhancement POC SOW", "5. AI based Image Inspection POC SOW", "6. Gen AI for SOP POC SOW", "7. Project Scope Document", "8. Gen AI Speech To Speech", "9. PoC Scope Document", "Other (Custom Use Case)"]
     solution_type = st.selectbox("1.1 Solution Type", sow_opts)
     if solution_type == "Other (Custom Use Case)":
-        custom_name = st.text_input(value= "Enter Custom Use Case Name")
+        custom_name = st.text_input("Enter Custom Use Case Name:", value = "Enter Custom Use Case")
         sow_key = custom_name
     else:
         sow_key = solution_type.split(". ", 1)[1] if ". " in solution_type else solution_type
