@@ -18,7 +18,7 @@ ASSETS_DIR = os.path.join(BASE_DIR, "diagrams")
 
 AWS_PN_LOGO = os.path.join(ASSETS_DIR, "aws partner logo.jpg")
 ONETURE_LOGO = os.path.join(ASSETS_DIR, "oneture logo1.jpg")
-AWS_ADV_LOGO = os.path.join(ASSETS_DIR, "aws advanced logo1.jpg")
+AWS_ADV_LOGO = os.path.join(ASSETS_DIR, "aws advanced logo.jpg")
 
 SOW_COST_TABLE_MAP = { 
     "L1 Support Bot POC SOW": { "poc_cost": "3,536.40 USD" }, 
@@ -297,6 +297,7 @@ with st.sidebar:
     sow_opts = ["1. L1 Support Bot POC SOW", "2. Beauty Advisor POC SOW", "3. Ready Search POC Scope of Work Document", "4. AI based Image Enhancement POC SOW", "5. AI based Image Inspection POC SOW", "6. Gen AI for SOP POC SOW", "7. Project Scope Document", "8. Gen AI Speech To Speech", "9. PoC Scope Document", "Other (Custom Use Case)"]
     solution_type = st.selectbox("1.1 Solution Type", sow_opts)
     if solution_type == "Other (Custom Use Case)":
+        custom_name = st.text_input("Enter Custom Use Case Name:", value="Custom GenAI Solution")
         sow_key = st.text_input("Enter Custom Use Case Name:", value="Custom GenAI Solution")
     else:
         sow_key = solution_type.split(". ", 1)[1] if ". " in solution_type else solution_type
