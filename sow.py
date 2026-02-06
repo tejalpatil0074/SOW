@@ -13,12 +13,12 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
 # --- FILE PATHING & DIAGRAM MAPPING ---
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.abspath(_file_))
 ASSETS_DIR = os.path.join(BASE_DIR, "diagrams")
 
 AWS_PN_LOGO = os.path.join(ASSETS_DIR, "aws partner logo.jpg")
 ONETURE_LOGO = os.path.join(ASSETS_DIR, "oneture logo1.jpg")
-AWS_ADV_LOGO = os.path.join(ASSETS_DIR, "aws advanced logo.jpg")
+AWS_ADV_LOGO = os.path.join(ASSETS_DIR, "aws advanced logo1.jpg")
 
 SOW_COST_TABLE_MAP = { 
     "L1 Support Bot POC SOW": { "poc_cost": "3,536.40 USD" }, 
@@ -75,8 +75,14 @@ st.markdown("""
 
 # --- DOCX UTILS ---
 def set_cell_shading(cell, color="D9D9D9"):
+    """
+    Sets the background shading of a table cell.
+    Explicitly sets w:val="clear" to ensure the fill color renders correctly.
+    """
     tcPr = cell._element.get_or_add_tcPr()
     shd = OxmlElement('w:shd')
+    shd.set(qn('w:val'), 'clear')
+    shd.set(qn('w:color'), 'auto')
     shd.set(qn('w:fill'), color)
     tcPr.append(shd)
 
@@ -96,15 +102,7 @@ def add_hyperlink(paragraph, text, url):
     new_run.append(t); hyperlink.append(new_run)
     paragraph._p.append(hyperlink)
 
-def clean_markdown(text):
-    text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)   # remove **bold**
-    text = re.sub(r'\*(.*?)\*', r'\1', text)       # remove *italic*
-    text = re.sub(r'`(.*?)`', r'\1', text)         # remove `code`
-    return text
-
 def create_docx_logic(text_content, branding, sow_name, timeline_df):
-    sow_name = sow_name.strip()   # 🔥 REQUIRED
-
     doc = Document()
     style = doc.styles['Normal']
     style.font.name = 'Times New Roman'
@@ -147,11 +145,11 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
     while i < len(lines):
         line = lines[i].strip()
         if not line: i += 1; continue
-        clean_line = clean_markdown(
-            re.sub(r'#+\s*', '', line).strip()
-        )
-
-        upper = clean_line.upper()
+        clean_line = re.sub(r'#+\s*', '', line).strip()
+        # Remove asterisks for cleaner processing
+        clean_line_no_ast = clean_line.replace('*', '')
+        upper = clean_line_no_ast.upper()
+        
         current_id = None
         for h_id, h_title in headers_map.items():
             if re.match(rf"^{h_id}[\.\s]+.*{re.escape(h_title.split()[0].upper())}", upper):
@@ -159,42 +157,33 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
 
         if current_id:
             if current_id != "2": doc.add_page_break()
-            h = doc.add_heading(clean_line.upper(), level=1)
+            h = doc.add_heading(clean_line_no_ast.upper(), level=1)
             for run in h.runs: run.bold = True; run.font.color.rgb = RGBColor(0, 0, 0)
             
-            from PIL import Image
-
             if current_id == "4":
                 diag = SOW_DIAGRAM_MAP.get(sow_name)
                 if diag and os.path.exists(diag):
-                    try:
-                        with Image.open(diag) as img:
-                            img.verify()  # validate image
-                        doc.add_picture(diag, width=Inches(5.5))
-                        p_cap = doc.add_paragraph(f"{sow_name} – Architecture Diagram")
-                        p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                    except Exception:
-                        doc.add_paragraph("Architecture diagram unavailable.")
-
-            i +=1
-            continue
-
+                    doc.add_picture(diag, width=Inches(5.5))
+                    p_cap = doc.add_paragraph(f"{sow_name} – Architecture Diagram")
+                    p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            i += 1; continue
             
         if line.startswith('|') and i + 1 < len(lines) and lines[i+1].strip().startswith('|'):
             # Skip Markdown timeline tables as we generate them manually
-            if "Development Timelines:" in lines[i-1] or "Development Timelines:" in lines[i-2]:
+            # Also checking slightly wider window to avoid hallucinations
+            if any("Development Timelines" in lines[max(0, i-j)] for j in range(1, 4)):
                 i += 1
                 continue
 
             table_lines = []
             while i < len(lines) and lines[i].strip().startswith('|'): table_lines.append(lines[i]); i += 1
             if len(table_lines) >= 3:
-                cols = [c.strip() for c in table_lines[0].split('|') if c.strip()]
+                cols = [c.strip().replace('*','') for c in table_lines[0].split('|') if c.strip()]
                 t = doc.add_table(rows=1, cols=len(cols)); t.style = "Table Grid"
                 for idx, h_text in enumerate(cols):
                     t.rows[0].cells[idx].paragraphs[0].add_run(h_text).bold = True
                 for row_line in table_lines[2:]:
-                    cells_data = [c.strip() for c in row_line.split('|') if c.strip()]
+                    cells_data = [c.strip().replace('*','') for c in row_line.split('|') if c.strip()]
                     r = t.add_row().cells
                     for idx, c_text in enumerate(cells_data): 
                         if idx < len(r): 
@@ -204,9 +193,17 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
                                 r[idx].paragraphs[0].add_run(c_text)
             continue
 
-        if "Development Timelines:" in clean_line:
-            p_tl = doc.add_paragraph()
-            p_tl.add_run("Development Timelines:").bold = True
+        # Enhanced detection for Timeline section
+        is_timeline_header = "Development Timelines" in clean_line_no_ast or "Development Timeline" in clean_line_no_ast
+        is_timeline_placeholder = "[TIMELINE_PLACEHOLDER]" in line
+
+        if is_timeline_header or is_timeline_placeholder:
+            # If we matched the header text, add it to the doc
+            if is_timeline_header:
+                p_tl = doc.add_paragraph()
+                p_tl.add_run("Development Timelines:").bold = True
+            
+            # --- INSERT CORRECT DYNAMIC TABLE ---
             cols = timeline_df.columns.tolist()
             t = doc.add_table(rows=1, cols=len(cols)); t.style = "Table Grid"
             for idx, h_text in enumerate(cols): t.rows[0].cells[idx].paragraphs[0].add_run(h_text).bold = True
@@ -214,34 +211,46 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
                 r = t.add_row().cells
                 for idx, col_name in enumerate(cols):
                     val = str(row[col_name])
-                    if val.strip().upper() == "X":
+                    if val.strip().upper() == "X": 
                         set_cell_shading(r[idx])
                     else: 
                         r[idx].paragraphs[0].add_run(val)
+            
+            # --- CONSUME/SKIP HALLUCINATED TABLE/PLACEHOLDER ---
+            # Peek ahead and eat lines that look like a table or placeholder text
+            while i + 1 < len(lines):
+                next_line_check = lines[i+1].strip()
+                # Stop skipping if we hit a new header
+                if next_line_check.startswith('#') or "Solution Architecture" in next_line_check:
+                    break
+                # Skip tables, empty lines, or placeholder text
+                if not next_line_check or next_line_check.startswith('|') or "inserted manually" in next_line_check or "Description" in next_line_check or "placeholder" in next_line_check.lower() or "[TIMELINE_PLACEHOLDER]" in next_line_check:
+                    i += 1
+                else:
+                    break
+            
             i += 1; continue
 
-        if line.startswith('## ') or line.startswith('### ') or re.match(r'^[A-Z]\.\s+', clean_line) or re.match(r'^\d+\.\d+\s+', clean_line): 
-            lvl = 2 if (line.startswith('## ') or re.match(r'^\d+\.\d+\s+', clean_line)) else 3
-            h = doc.add_heading(clean_line, level=lvl)
+        # Identify sub-headings like 2.1, A., B.
+        is_sub = re.match(r'^[A-Z]\.\s+', clean_line_no_ast) or re.match(r'^\d+\.\d+\s+', clean_line_no_ast) or re.match(r'^\d+\.\s+', clean_line_no_ast)
+        
+        if line.startswith('## ') or line.startswith('### ') or is_sub: 
+            lvl = 2 
+            h = doc.add_heading(clean_line_no_ast, level=lvl)
             for run in h.runs: run.bold = True; run.font.color.rgb = RGBColor(0, 0, 0)
         elif line.strip().startswith('o '):
             p_b = doc.add_paragraph(style="List Bullet")
-            p_b.add_run(line.strip()[2:].strip())
+            p_b.add_run(line.strip()[2:].strip().replace('*', ''))
         elif line.strip().startswith('§ '):
             p_b = doc.add_paragraph(style="List Bullet")
             p_b.paragraph_format.left_indent = Inches(0.5)
-            p_b.add_run(line.strip()[2:].strip())
-        elif line.strip().startswith(('* ', '- ')):
+            p_b.add_run(line.strip()[2:].strip().replace('*', ''))
+        elif line.startswith('- ') or line.startswith('* '):
             p_b = doc.add_paragraph(style="List Bullet")
-            p_b.add_run(
-                clean_markdown(
-                    re.sub(r'^[\-\*]\s*', '', line).strip()
-                )
-            )
-
+            p_b.add_run(re.sub(r'^[\-\]\s', '', line).strip().replace('*', ''))
         else:
             p_n = doc.add_paragraph()
-            p_n.add_run(clean_line)
+            p_n.add_run(clean_line_no_ast)
         i += 1
     bio = io.BytesIO(); doc.save(bio); return bio.getvalue()
 
@@ -425,11 +434,11 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
 
         ## 2.4 PoC Success Criteria
         Success outcomes (BOLD headers with sub-bullets):
-        1. **Capability Validation**
+        1. *Capability Validation*
            o Successful demonstration of {', '.join(sel_caps)}
-        2. **Result Quality**
+        2. *Result Quality*
            o Target metrics for {', '.join(sel_dims)}
-        3. **Validation Outcome**
+        3. *Validation Outcome*
            o {val_req}.
 
         # 3  Scope of Work - Technical Project Plan
@@ -446,11 +455,11 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
         o Stakeholder iterative reviews and formal sign-off.
 
         Development Timelines: 
-        (Don't Leave empty, I will not insert the table manually).
+        [TIMELINE_PLACEHOLDER]
 
         # 4  Solution Architecture / Architectural Diagram
-        (No technical description Needed).
-
+        No description 
+        Only Disclaimer- *Specifics to be discussed basis POC 
         
         {cost_table}
 
@@ -473,7 +482,9 @@ if st.session_state.generated_sow:
     with tab_p:
         st.markdown('<div class="sow-preview">', unsafe_allow_html=True)
         preview_toc = "## Table of Contents\n- 2  Project Overview\n- 3  Scope of Work - Technical Project Plan\n- 4  Solution Architecture / Architectural Diagram\n- 5  RESOURCES & COST ESTIMATES\n\n---\n"
-        full_content = preview_toc + st.session_state.generated_sow
+        # Removing asterisks from generated content for cleaner look
+        clean_content = st.session_state.generated_sow.replace("**", "")
+        full_content = preview_toc + clean_content
         calc_url_p = CALCULATOR_LINKS.get(sow_key, "https://calculator.aws/")
         
         def render_html_timeline(df):
@@ -498,18 +509,18 @@ if st.session_state.generated_sow:
         
         for p in parts:
             if re.match(s3_pattern, p, re.IGNORECASE): 
-                st.markdown(f"**{p}**", unsafe_allow_html=True)
+                st.markdown(f"*{p}*", unsafe_allow_html=True)
             elif re.match(s4_pattern, p, re.IGNORECASE): 
-                st.markdown(f"**{p}**", unsafe_allow_html=True)
+                st.markdown(f"*{p}*", unsafe_allow_html=True)
                 diag_out = SOW_DIAGRAM_MAP.get(sow_key.strip())
-                if diag_out and os.path.exists(diag): 
+                if diag_out and os.path.exists(diag_out): 
                     st.image(diag_out, caption=f"{sow_key} Architecture Diagram")
             else:
                 final_p = p.replace("Link", f'<a href="{calc_url_p}" target="_blank">Link</a>')
                 if "Development Timelines:" in final_p:
                     sub_parts = final_p.split("Development Timelines:")
                     st.markdown(sub_parts[0], unsafe_allow_html=True)
-                    st.markdown("**Development Timelines:**", unsafe_allow_html=True)
+                    st.markdown("*Development Timelines:*", unsafe_allow_html=True)
                     st.write(render_html_timeline(st.session_state.timeline_phases), unsafe_allow_html=True)
                     if len(sub_parts) > 1: st.markdown(sub_parts[1], unsafe_allow_html=True)
                 else:
