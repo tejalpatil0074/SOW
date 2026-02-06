@@ -298,11 +298,11 @@ with st.sidebar:
     solution_type = st.selectbox("1.1 Solution Type", sow_opts)
     if solution_type == "Other (Custom Use Case)":
         custom_name = st.text_input("Enter Custom Use Case Name:", value="Custom GenAI Solution")
-        sow_key = st.text_input("Enter Custom Use Case Name:", value="Custom GenAI Solution", key="custom_sow_input")
+        sow_key = custom_name
     else:
         sow_key = solution_type.split(". ", 1)[1] if ". " in solution_type else solution_type
         
-    sow_key = solution_type.split(". ", 1)[1] if ". " in solution_type else solution_type
+
     engagement_type = st.selectbox("1.2 Engagement Type", ["Proof of Concept (PoC)", "Pilot", "MVP", "Production Rollout", "Assessment / Discovery", "Support"])
     industry_type = st.selectbox("1.3 Industry / Domain", ["Retail / E-commerce", "BFSI", "Manufacturing", "Telecom", "Healthcare", "Energy / Utilities", "Logistics", "Media", "Government", "Other (specify)"])
     final_industry = st.text_input("Specify Industry:") if industry_type == "Other (specify)" else industry_type
