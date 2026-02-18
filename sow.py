@@ -271,7 +271,7 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df, active_diag
 
 def call_gemini_with_retry(payload, api_key_input=""):
     apiKey = api_key_input if api_key_input else ""
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={apiKey}"
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key={apiKey}"
     delays = [1, 2, 4, 8, 16]
     for attempt in range(len(delays)):
         try:
@@ -512,31 +512,22 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
         """
         payload = {
             "contents": [
-                {
-                    "role": "user",
-                    "parts": [
                         {
-                            "text": f"""
-        You are a senior AWS Solutions Architect.
-
-        STRICT RULES:
-        - Follow enterprise SOW standards
-        - Use ONLY sections 2 to 5
-        - BOLD main headings
-        - Section 3 must use A, B, C sub-headings
-        - Do NOT invent extra sections
-        - Keep language professional and formal
-
-        {prompt}
-        """
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": f"""You are an AWS Solutions Architect.
+                                        Adhere strictly to sections 2-5 numbering.
+                                        BOLD main headings.
+                                        Use letters A, B, C for sub-headings in Section 3.
+            
+                                        {prompt}
+                                        """
+                            }
+                        ]        
                         }
-                    ]
-                }
-            ]
-        }
-
-
-
+                        ]
+                    }
         res, err = call_gemini_with_retry(payload, api_key_input=api_key)
         if res:
             st.session_state.generated_sow = res.json()['candidates'][0]['content']['parts'][0]['text']
