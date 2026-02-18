@@ -271,7 +271,7 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df, active_diag
 
 def call_gemini_with_retry(payload, api_key_input=""):
     apiKey = api_key_input if api_key_input else ""
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={apiKey}"
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={apiKey}"
     delays = [1, 2, 4, 8, 16]
     for attempt in range(len(delays)):
         try:
