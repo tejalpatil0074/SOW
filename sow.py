@@ -510,7 +510,32 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
         Cost ownership: {ownership}.
         Deliverables: {', '.join(delivs)}.
         """
-        payload = {"contents": [{"parts": [{"text": prompt}]}], "systemInstruction": {"parts": [{"text": "AWS Solutions Architect. Adhere to sections 2-5 numbering. BOLD main headings. Use letters A, B, C for sub-headings in Section 3."}]}}
+        payload = {
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": [
+                        {
+                            "text": f"""
+        You are a senior AWS Solutions Architect.
+
+        STRICT RULES:
+        - Follow enterprise SOW standards
+        - Use ONLY sections 2 to 5
+        - BOLD main headings
+        - Section 3 must use A, B, C sub-headings
+        - Do NOT invent extra sections
+        - Keep language professional and formal
+
+        {prompt}
+        """
+                        }
+                    ]
+                }
+            ]
+        }
+
+
 
         res, err = call_gemini_with_retry(payload, api_key_input=api_key)
         if res:
