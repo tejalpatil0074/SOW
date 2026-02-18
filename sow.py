@@ -3,7 +3,7 @@ from datetime import date
 import io
 import re
 import os
-import time 
+import time
 import requests
 import pandas as pd
 from docx import Document
@@ -16,22 +16,26 @@ from docx.oxml.ns import qn
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR = os.path.join(BASE_DIR, "diagrams")
 
+# Ensure assets directory exists
+if not os.path.exists(ASSETS_DIR):
+    os.makedirs(ASSETS_DIR)
+
 AWS_PN_LOGO = os.path.join(ASSETS_DIR, "aws partner logo.jpg")
 ONETURE_LOGO = os.path.join(ASSETS_DIR, "oneture logo1.jpg")
-AWS_ADV_LOGO = os.path.join(ASSETS_DIR, "aws advanced logo.jpg")
+AWS_ADV_LOGO = os.path.join(ASSETS_DIR, "aws advanced logo1.jpg")
 
-SOW_COST_TABLE_MAP = { 
-    "L1 Support Bot POC SOW": { "poc_cost": "3,536.40 USD" }, 
-    "Beauty Advisor POC SOW": { 
-        "poc_cost": "4,525.66 USD + 200 USD (Amazon Bedrock Cost) = 4,725.66", 
-        "prod_cost": "4,525.66 USD + 1,175.82 USD (Amazon Bedrock Cost) = 5,701.48" 
-    }, 
-    "Ready Search POC Scope of Work Document":{ "poc_cost": "2,641.40 USD" }, 
-    "AI based Image Enhancement POC SOW": { "poc_cost": "2,814.34 USD" }, 
-    "AI based Image Inspection POC SOW": { "poc_cost": "3,536.40 USD" }, 
-    "Gen AI for SOP POC SOW": { "poc_cost": "2,110.30 USD" }, 
-    "Project Scope Document": { "prod_cost": "2,993.60 USD" }, 
-    "Gen AI Speech To Speech": { "prod_cost": "2,124.23 USD" }, 
+SOW_COST_TABLE_MAP = {
+    "L1 Support Bot POC SOW": { "poc_cost": "3,536.40 USD" },
+    "Beauty Advisor POC SOW": {
+        "poc_cost": "4,525.66 USD + 200 USD (Amazon Bedrock Cost) = 4,725.66",
+        "prod_cost": "4,525.66 USD + 1,175.82 USD (Amazon Bedrock Cost) = 5,701.48"
+    },
+    "Ready Search POC Scope of Work Document":{ "poc_cost": "2,641.40 USD" },
+    "AI based Image Enhancement POC SOW": { "poc_cost": "2,814.34 USD" },
+    "AI based Image Inspection POC SOW": { "poc_cost": "3,536.40 USD" },
+    "Gen AI for SOP POC SOW": { "poc_cost": "2,110.30 USD" },
+    "Project Scope Document": { "prod_cost": "2,993.60 USD" },
+    "Gen AI Speech To Speech": { "prod_cost": "2,124.23 USD" },
     "PoC Scope Document": { "amazon_bedrock": "1,000 USD", "total": "$ 3,150" }
 }
 
@@ -94,7 +98,7 @@ def add_hyperlink(paragraph, text, url):
     new_run = OxmlElement('w:r')
     rPr = OxmlElement('w:rPr')
     c = OxmlElement('w:color')
-    c.set(qn('w:val'), '0000EE') 
+    c.set(qn('w:val'), '0000EE')
     u = OxmlElement('w:u')
     u.set(qn('w:val'), 'single')
     rPr.append(c); rPr.append(u); new_run.append(rPr)
@@ -102,7 +106,7 @@ def add_hyperlink(paragraph, text, url):
     new_run.append(t); hyperlink.append(new_run)
     paragraph._p.append(hyperlink)
 
-def create_docx_logic(text_content, branding, sow_name, timeline_df):
+def create_docx_logic(text_content, branding, sow_name, timeline_df, active_diagram_source, active_calc_link):
     doc = Document()
     style = doc.styles['Normal']
     style.font.name = 'Times New Roman'
@@ -161,11 +165,22 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
             for run in h.runs: run.bold = True; run.font.color.rgb = RGBColor(0, 0, 0)
             
             if current_id == "4":
-                diag = SOW_DIAGRAM_MAP.get(sow_name)
-                if diag and os.path.exists(diag):
-                    doc.add_picture(diag, width=Inches(5.5))
-                    p_cap = doc.add_paragraph(f"{sow_name} – Architecture Diagram")
-                    p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                # Handle Diagram Insertion (String Path or BytesIO)
+                if active_diagram_source:
+                    try:
+                        if isinstance(active_diagram_source, str):
+                            # It's a file path
+                            if os.path.exists(active_diagram_source):
+                                doc.add_picture(active_diagram_source, width=Inches(5.5))
+                        else:
+                            # It's a BytesIO object (Uploaded file)
+                            active_diagram_source.seek(0)
+                            doc.add_picture(active_diagram_source, width=Inches(5.5))
+                        
+                        p_cap = doc.add_paragraph(f"{sow_name} – Architecture Diagram")
+                        p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    except Exception as e:
+                        print(f"Error adding picture: {e}")
             i += 1; continue
             
         if line.startswith('|') and i + 1 < len(lines) and lines[i+1].strip().startswith('|'):
@@ -188,7 +203,7 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
                     for idx, c_text in enumerate(cells_data): 
                         if idx < len(r): 
                             if "link" in c_text.lower():
-                                add_hyperlink(r[idx].paragraphs[0], "Link", CALCULATOR_LINKS.get(sow_name, "https://calculator.aws/"))
+                                add_hyperlink(r[idx].paragraphs[0], "Link", active_calc_link if active_calc_link else "https://calculator.aws/")
                             else:
                                 r[idx].paragraphs[0].add_run(c_text)
             continue
@@ -247,7 +262,7 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
             p_b.add_run(line.strip()[2:].strip().replace('*', ''))
         elif line.startswith('- ') or line.startswith('* '):
             p_b = doc.add_paragraph(style="List Bullet")
-            p_b.add_run(re.sub(r'^[\-\]\s]+', '', line).strip().replace('*', ''))
+            p_b.add_run(re.sub(r'^[\-\*]\s*', '', line).strip().replace('*', ''))
         else:
             p_n = doc.add_paragraph()
             p_n.add_run(clean_line_no_ast)
@@ -256,7 +271,7 @@ def create_docx_logic(text_content, branding, sow_name, timeline_df):
 
 def call_gemini_with_retry(payload, api_key_input=""):
     apiKey = api_key_input if api_key_input else ""
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key={apiKey}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={apiKey}"
     delays = [1, 2, 4, 8, 16]
     for attempt in range(len(delays)):
         try:
@@ -294,14 +309,26 @@ with st.sidebar:
     api_key = st.text_input("Gemini API Key", type="password")
     st.divider()
     st.header("📋 1. Project Intake")
-    sow_opts = ["1. L1 Support Bot POC SOW", "2. Beauty Advisor POC SOW", "3. Ready Search POC Scope of Work Document", "4. AI based Image Enhancement POC SOW", "5. AI based Image Inspection POC SOW", "6. Gen AI for SOP POC SOW", "7. Project Scope Document", "8. Gen AI Speech To Speech", "9. PoC Scope Document", "Other (Custom Use Case)"]
+    
+    # Updated Options list including custom
+    sow_opts = ["1. L1 Support Bot POC SOW", "2. Beauty Advisor POC SOW", "3. Ready Search POC Scope of Work Document", "4. AI based Image Enhancement POC SOW", "5. AI based Image Inspection POC SOW", "6. Gen AI for SOP POC SOW", "7. Project Scope Document", "8. Gen AI Speech To Speech", "9. PoC Scope Document", "10. Other / Custom"]
+    
     solution_type = st.selectbox("1.1 Solution Type", sow_opts)
-    if solution_type == "Other (Custom Use Case)":
-        custom_name = st.text_input("Enter Custom Use Case Name:", placeholder = "Enter Custom Use Case")
-        sow_key = custom_name
+    
+    # Custom Use Case Logic
+    is_custom = "Other / Custom" in solution_type
+    
+    custom_diagram_upload = None
+    custom_calc_link = ""
+    sow_key = ""
+
+    if is_custom:
+        custom_sow_name = st.text_input("Enter Project Name", "My GenAI Project")
+        sow_key = custom_sow_name
+        custom_diagram_upload = st.file_uploader("Upload Architecture Diagram", type=['png', 'jpg', 'jpeg'])
+        custom_calc_link = st.text_input("AWS Calculator Link")
     else:
         sow_key = solution_type.split(". ", 1)[1] if ". " in solution_type else solution_type
-        
 
     engagement_type = st.selectbox("1.2 Engagement Type", ["Proof of Concept (PoC)", "Pilot", "MVP", "Production Rollout", "Assessment / Discovery", "Support"])
     industry_type = st.selectbox("1.3 Industry / Domain", ["Retail / E-commerce", "BFSI", "Manufacturing", "Telecom", "Healthcare", "Energy / Utilities", "Logistics", "Media", "Government", "Other (specify)"])
@@ -309,6 +336,16 @@ with st.sidebar:
     if st.button("🗑️ Reset All", use_container_width=True): 
         for key in list(st.session_state.keys()): del st.session_state[key]
         init_state(); st.rerun()
+
+# --- DETERMINE ACTIVE ASSETS ---
+if is_custom:
+    active_diagram = custom_diagram_upload # BytesIO or None
+    active_link = custom_calc_link
+    active_cost_info = {"Cost": "To be calculated"} # Default for custom
+else:
+    active_diagram = SOW_DIAGRAM_MAP.get(sow_key) # String path
+    active_link = CALCULATOR_LINKS.get(sow_key, "https://calculator.aws/")
+    active_cost_info = SOW_COST_TABLE_MAP.get(sow_key, {})
 
 # --- MAIN UI ---
 st.title("🚀 GenAI Scope of Work Architect")
@@ -388,7 +425,7 @@ st.session_state.timeline_phases = st.data_editor(st.session_state.timeline_phas
 st.divider()
 
 st.header("💰 9. Costing Inputs & Ownership")
-st.info(f"Calculator Link: {CALCULATOR_LINKS.get(sow_key, 'https://calculator.aws')}")
+st.info(f"Calculator Link: {active_link}")
 ownership = st.selectbox("Cost Ownership:", ["Funded by AWS", "Funded by Partner", "Funded by Customer", "Shared"], index=2)
 st.divider()
 
@@ -405,9 +442,8 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
             rows = ["| " + " | ".join(str(val) for val in row) + " |" for _, row in df.iterrows()]
             return "\n".join([headers, sep] + rows)
             
-        cost_info = SOW_COST_TABLE_MAP.get(sow_key, {})
         cost_table = "| System | Infra Cost | AWS Cost Calculator Link |\n| --- | --- | --- |\n"
-        for k,v in cost_info.items(): 
+        for k,v in active_cost_info.items(): 
             label = "POC" if k == "poc_cost" else "Production" if k == "prod_cost" else k
             cost_table += f"| {label} | {v} | Link |\n"
         
@@ -440,11 +476,11 @@ if st.button("✨ Generate Full SOW", type="primary", use_container_width=True):
 
         ## 2.4 PoC Success Criteria
         Success outcomes (BOLD headers with sub-bullets):
-        1. *Capability Validation*
+        1. **Capability Validation**
            o Successful demonstration of {', '.join(sel_caps)}
-        2. *Result Quality*
+        2. **Result Quality**
            o Target metrics for {', '.join(sel_dims)}
-        3. *Validation Outcome*
+        3. **Validation Outcome**
            o {val_req}.
 
         # 3  Scope of Work - Technical Project Plan
@@ -491,7 +527,6 @@ if st.session_state.generated_sow:
         # Removing asterisks from generated content for cleaner look
         clean_content = st.session_state.generated_sow.replace("**", "")
         full_content = preview_toc + clean_content
-        calc_url_p = CALCULATOR_LINKS.get(sow_key, "https://calculator.aws/")
         
         def render_html_timeline(df):
             html = '<table class="timeline-table"><thead><tr>'
@@ -515,18 +550,25 @@ if st.session_state.generated_sow:
         
         for p in parts:
             if re.match(s3_pattern, p, re.IGNORECASE): 
-                st.markdown(f"*{p}*", unsafe_allow_html=True)
+                st.markdown(f"**{p}**", unsafe_allow_html=True)
             elif re.match(s4_pattern, p, re.IGNORECASE): 
-                st.markdown(f"*{p}*", unsafe_allow_html=True)
-                diag_out = SOW_DIAGRAM_MAP.get(sow_key.strip())
-                if diag_out and os.path.exists(diag_out): 
-                    st.image(diag_out, caption=f"{sow_key} Architecture Diagram")
+                st.markdown(f"**{p}**", unsafe_allow_html=True)
+                
+                # Logic to display custom uploaded image or mapped image
+                if active_diagram:
+                    if isinstance(active_diagram, str) and os.path.exists(active_diagram):
+                        st.image(active_diagram, caption=f"{sow_key} Architecture Diagram")
+                    elif not isinstance(active_diagram, str):
+                        st.image(active_diagram, caption=f"{sow_key} Architecture Diagram (Uploaded)")
+                else:
+                    st.warning("No diagram available.")
+
             else:
-                final_p = p.replace("Link", f'<a href="{calc_url_p}" target="_blank">Link</a>')
+                final_p = p.replace("Link", f'<a href="{active_link}" target="_blank">Link</a>')
                 if "Development Timelines:" in final_p:
                     sub_parts = final_p.split("Development Timelines:")
                     st.markdown(sub_parts[0], unsafe_allow_html=True)
-                    st.markdown("*Development Timelines:*", unsafe_allow_html=True)
+                    st.markdown("**Development Timelines:**", unsafe_allow_html=True)
                     st.write(render_html_timeline(st.session_state.timeline_phases), unsafe_allow_html=True)
                     if len(sub_parts) > 1: st.markdown(sub_parts[1], unsafe_allow_html=True)
                 else:
@@ -536,5 +578,5 @@ if st.session_state.generated_sow:
     
     if st.button("💾 Prepare Microsoft Word"):
         branding = {"sow_name": sow_key, "customer_logo_bytes": customer_logo.getvalue() if customer_logo else None, "doc_date_str": doc_date.strftime("%d %B %Y")}
-        docx_data = create_docx_logic(st.session_state.generated_sow, branding, sow_key, st.session_state.timeline_phases)
+        docx_data = create_docx_logic(st.session_state.generated_sow, branding, sow_key, st.session_state.timeline_phases, active_diagram, active_link)
         st.download_button("📥 Download SOW (.docx)", docx_data, f"SOW_{sow_key.replace(' ', '_')}.docx", use_container_width=True)
